@@ -15,7 +15,9 @@ app = wx.App(False)
 checker = wx.SingleInstanceChecker("lcsc_importer-" + wx.GetUserId())
 if checker.IsAnotherRunning():
     u = ctypes.windll.user32
-    hwnd = u.FindWindowW(None, "%s  v%s" % (gui.TITLE, __version__))
+    hwnd = 0
+    for t in gui.TITLES.values():
+        hwnd = hwnd or u.FindWindowW(None, "%s  v%s" % (t, __version__))
     if hwnd:
         u.ShowWindow(hwnd, 9)              # SW_RESTORE
         u.SetForegroundWindow(hwnd)

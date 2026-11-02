@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<title>LCSC Parça Ekle</title>
+<title>LCSC Part Importer</title>
 <style>
 :root {
   --bg: #f4f5f7; --panel: #ffffff; --panel2: #f9fafb; --fg: #1b2230; --mut: #69717f; --line: #e3e6eb;
@@ -165,36 +165,38 @@ td:first-child { color: var(--mut); width: 42%; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-thumb:hover { background-color: var(--mut); }
+.logo { background: none !important; padding: 0; object-fit: contain; }
 </style>
 </head>
 <body>
 <header>
-  <div class="logo" id="logo" title="LCSC Parça Ekle">C</div>
+  <img class="logo" id="logo" src="icon64.png" alt="LCSC" title="LCSC Part Importer">
   <div class="search">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <input id="q" autocomplete="off" spellcheck="false" placeholder="Parça adı, değer veya LCSC kodu — ör. C141632, 10k 0603, AMS1117">
+    <input id="q" autocomplete="off" spellcheck="false" data-i18n-ph placeholder="Parça adı, değer veya LCSC kodu — ör. C141632, 10k 0603, AMS1117">
     <kbd>Ctrl+F</kbd>
   </div>
-  <button class="btn primary" id="go">Ara</button>
-  <button class="chip on" id="f-stock" title="Stoğu olmayanları gizle">Stokta</button>
-  <button class="chip" id="f-basic" title="JLCPCB Basic parçalar (montaj ücreti yok)">Basic</button>
-  <select class="chip" id="sort" title="Sıralama">
-    <option value="stock">Stok ↓</option>
-    <option value="price">Fiyat ↑</option>
-    <option value="model">Ad A→Z</option>
-    <option value="none">API sırası</option>
+  <button class="btn primary" id="go" data-i18n>Ara</button>
+  <button class="chip on" id="f-stock" data-i18n data-i18n-title title="Stoğu olmayanları gizle">Stokta</button>
+  <button class="chip" id="f-basic" data-i18n-title title="JLCPCB Basic parçalar (montaj ücreti yok)">Basic</button>
+  <button class="chip" id="lang" title="Dil / Language">EN</button>
+  <select class="chip" id="sort" data-i18n-title title="Sıralama">
+    <option value="stock" data-i18n>Stok ↓</option>
+    <option value="price" data-i18n>Fiyat ↑</option>
+    <option value="model" data-i18n>Ad A→Z</option>
+    <option value="none" data-i18n>API sırası</option>
   </select>
 </header>
 
 <main>
   <section class="left">
     <div class="tabs">
-      <button class="tab on" data-t="res">Sonuçlar <span class="n" id="n-res">0</span></button>
-      <button class="tab" data-t="lib">Kütüphanem <span class="n" id="n-lib">0</span></button>
+      <button class="tab on" data-t="res"><span data-i18n>Sonuçlar</span> <span class="n" id="n-res">0</span></button>
+      <button class="tab" data-t="lib"><span data-i18n>Kütüphanem</span> <span class="n" id="n-lib">0</span></button>
       <span class="meta" id="meta"></span>
     </div>
     <div class="libbar" id="libbar" hidden>
-      <input id="lq" autocomplete="off" spellcheck="false" placeholder="Kütüphanede ara: ad, değer, kod…">
+      <input id="lq" autocomplete="off" spellcheck="false" data-i18n-ph placeholder="Kütüphanede ara: ad, değer, kod…">
       <div class="cats" id="cats"></div>
     </div>
     <div class="list" id="list" tabindex="0"></div>
@@ -203,10 +205,10 @@ td:first-child { color: var(--mut); width: 42%; }
   <section class="right">
     <div class="detail sel-text" id="detail"></div>
     <div class="actions">
-      <div class="field" style="flex:0 0 60px"><label>Referans</label><input id="ref" maxlength="6"></div>
-      <div class="field" style="flex:0 1 170px"><label>Değer (Value)</label><input id="val"></div>
+      <div class="field" style="flex:0 0 60px"><label data-i18n>Referans</label><input id="ref" maxlength="6"></div>
+      <div class="field" style="flex:0 1 170px"><label data-i18n>Değer (Value)</label><input id="val"></div>
       <div class="spacer"></div>
-      <button class="btn" id="add" disabled title="Sadece LCSC kütüphanesine ekle">Kütüphaneye ekle</button>
+      <button class="btn" id="add" disabled data-i18n data-i18n-title title="Sadece LCSC kütüphanesine ekle">Kütüphaneye ekle</button>
       <button class="btn primary" id="place" disabled title="Enter">Ekle ve şematiğe yerleştir</button>
     </div>
   </section>
@@ -218,6 +220,70 @@ td:first-child { color: var(--mut); width: 42%; }
 var $ = function (s) { return document.querySelector(s); };
 var S = { items: [], total: 0, page: 1, kw: "", busy: false, tab: "res", lib: [], libCodes: {}, libImg: {},
           cur: null, details: {}, req: 0, importing: false, cat: store("cat") || "" };
+
+var LANG = store("lang") || "";
+var EN = {
+  "Parça adı, değer veya LCSC kodu — ör. C141632, 10k 0603, AMS1117": "Part name, value or LCSC code — e.g. C141632, 10k 0603, AMS1117",
+  "Ara": "Search", "Stokta": "In stock", "Stoğu olmayanları gizle": "Hide parts that are out of stock",
+  "JLCPCB Basic parçalar (montaj ücreti yok)": "JLCPCB Basic parts (no assembly fee)", "Sıralama": "Sort",
+  "Stok ↓": "Stock ↓", "Fiyat ↑": "Price ↑", "Ad A→Z": "Name A→Z", "API sırası": "API order",
+  "Sonuçlar": "Results", "Kütüphanem": "My library", "Kütüphanede ara: ad, değer, kod…": "Search library: name, value, code…",
+  "Referans": "Reference", "Değer (Value)": "Value", "Kütüphaneye ekle": "Add to library",
+  "Sadece LCSC kütüphanesine ekle": "Only add to the LCSC library",
+  "Ekle ve şematiğe yerleştir": "Add & place in schematic", "Şematiğe yerleştir": "Place in schematic",
+  "Aranıyor…": "Searching…", "Yükleniyor…": "Loading…", "Ekleniyor…": "Adding…", "Yerleştiriliyor…": "Placing…",
+  "Parça aramak için yukarıya yazın.": "Type above to search for parts.",
+  "LCSC kodu (C141632), parça adı (AMS1117) veya değer + kılıf (10k 0603).": "LCSC code (C141632), part name (AMS1117) or value + package (10k 0603).",
+  "↑ ↓ ile gezin · <b>Enter</b> ekler ve şematikte imlece getirir": "Navigate with ↑ ↓ · <b>Enter</b> adds the part and attaches it to the cursor in the schematic",
+  "sonuç": "results", "parça": "parts",
+  "Filtrelere uyan sonuç yok. <b>Stokta</b> / <b>Basic</b> filtrelerini kapatmayı deneyin.": "No results match the filters. Try turning off <b>In stock</b> / <b>Basic</b>.",
+  "Sonuç bulunamadı.": "No results found.", "adet": "pcs", "stok yok": "no stock", "✓ ekli": "✓ added",
+  "Daha fazla yükle": "Load more", "kaldı": "left",
+  "Direnç": "Resistor", "Kondansatör": "Capacitor", "Bobin": "Inductor", "Diyot / LED": "Diode / LED",
+  "Transistör": "Transistor", "Entegre": "IC", "Konnektör": "Connector", "Buton / Anahtar": "Button / Switch",
+  "Sigorta": "Fuse", "Kristal": "Crystal", "Röle": "Relay", "Buzzer": "Buzzer", "Tümü": "All", "Diğer": "Other",
+  "Kütüphane henüz boş.": "Your library is empty.", "Bu filtreye uyan parça yok.": "No parts match this filter.",
+  "yükleniyor…": "loading…", "Stok: ": "Stock: ", "Stok yok": "No stock", "✓ Kütüphanede: ": "✓ In library: ",
+  "Fotoğraf": "Photo", "Sembol": "Symbol", "Footprint": "Footprint", "Üretici": "Manufacturer", "Kategori": "Category",
+  "Kılıf": "Package", "LCSC sayfası": "LCSC page", "Teknik özellikler": "Specifications", "Fiyat (USD)": "Price (USD)",
+  "+ adet": "+ pcs",
+  "LCSC detay bilgisi alınamadı; yalnızca arama sonucundaki bilgiler gösteriliyor.": "Could not load LCSC details; showing search result info only.",
+  "⚠ Bu parçanın KiCad çizimi yok": "⚠ This part has no KiCad drawing",
+  " için EasyEDA'da sembol ve footprint bulunmuyor, bu yüzden otomatik eklenemiyor. Aynı parçanın çizimi olan başka bir LCSC kodunu seçebilirsiniz.":
+    " has no symbol or footprint on EasyEDA, so it can't be imported automatically. You can pick another LCSC code for the same part that has one.",
+  "Çizimi olan alternatifleri bul": "Find alternatives with drawings",
+  "Çizimi olan alternatif bulunamadı.": "No alternatives with drawings found.",
+  "KiCad’in kendi kütüphanesinde aynı parça varsa (ör. BC547 → Transistor_BJT:BC547) onu kullanabilirsiniz.": "If KiCad's own library has the same part (e.g. BC547 → Transistor_BJT:BC547), you can use that.",
+  "Arama yapılamadı": "Search failed", "Tekrar dene": "Try again", "Eklenemedi": "Could not add",
+  "hazır": "ready", "kütüphaneye eklendi": "added to library",
+  "Şematikte imlecinize yapıştı, tıklayarak bırakın.": "It's attached to your cursor in the schematic; click to drop it.",
+  "Şematik açık değil: açınca <b>Ctrl+V</b> ile yerleştirin.": "Schematic is not open: open it and press <b>Ctrl+V</b>.",
+  "Şematikte <b>A</b> ile bulabilirsiniz.": "Find it in the schematic with <b>A</b>.",
+  "LCSC kütüphanesi KiCad'e tanıtıldı.": "LCSC library registered in KiCad.",
+  "Footprint'lerin görünmesi için KiCad'i bir kez kapatıp açın.": "Restart KiCad once so the footprints show up.",
+  "Kütüphane tablosu güncellenemedi": "Could not update the library table", "Kütüphane: ": "Library: ",
+  "Bir parça seçince fotoğrafı, sembolü, footprint'i ve teknik özellikleri burada görünür.": "Select a part to see its photo, symbol, footprint and specifications here."
+};
+function tx(s) { return LANG === "en" ? (EN[s] || s) : s; }
+function applyLang() {
+  document.documentElement.lang = LANG || "tr";
+  document.querySelectorAll("[data-i18n],[data-i18n-ph],[data-i18n-title]").forEach(function (e) {
+    if (e.dataset.trText === undefined) { e.dataset.trText = e.textContent; e.dataset.trPh = e.placeholder || ""; e.dataset.trTitle = e.title || ""; }
+    if (e.hasAttribute("data-i18n")) e.textContent = tx(e.dataset.trText);
+    if (e.hasAttribute("data-i18n-ph")) e.placeholder = tx(e.dataset.trPh);
+    if (e.hasAttribute("data-i18n-title")) e.title = tx(e.dataset.trTitle);
+  });
+  $("#lang").textContent = LANG === "en" ? "TR" : "EN";
+  if (!S.importing) $("#place").textContent = tx(S.tab === "lib" ? "Şematiğe yerleştir" : "Ekle ve şematiğe yerleştir");
+}
+function setLang(l, save) {
+  LANG = l === "en" ? "en" : "tr";
+  if (save) store("lang", LANG);
+  applyLang(); renderList();
+  if (S.cur && S.details[S.cur.code]) showDetail(S.cur.code);
+  else if (!S.cur) $("#detail").innerHTML = '<div class="empty">' + tx("Bir parça seçince fotoğrafı, sembolü, footprint'i ve teknik özellikleri burada görünür.") + "</div>";
+  send({ cmd: "lang", lang: LANG });
+}
 
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -243,8 +309,8 @@ function search(more) {
   if (!more) { S.kw = kw; S.page = 1; S.items = []; S.total = 0; setTab("res"); }
   else S.page += 1;
   S.busy = true; S.req += 1;
-  if (!more) $("#list").innerHTML = '<div class="empty"><div class="spin"></div>Aranıyor…</div>';
-  else { var m = $("#more"); if (m) { m.disabled = true; m.textContent = "Yükleniyor…"; } }
+  if (!more) $("#list").innerHTML = '<div class="empty"><div class="spin"></div>' + tx("Aranıyor…") + '</div>';
+  else { var m = $("#more"); if (m) { m.disabled = true; m.textContent = tx("Yükleniyor…"); } }
   send({ cmd: "search", kw: S.kw, page: S.page, req: S.req });
 }
 
@@ -264,17 +330,17 @@ function renderList() {
   $("#n-lib").textContent = S.lib.length;
   if (S.tab === "lib") return renderLib();
   if (!S.kw) {
-    L.innerHTML = '<div class="empty"><b>Parça aramak için yukarıya yazın.</b><br>' +
-      'LCSC kodu (C141632), parça adı (AMS1117) veya değer + kılıf (10k 0603).<br><br>' +
-      '↑ ↓ ile gezin · <b>Enter</b> ekler ve şematikte imlece getirir</div>';
+    L.innerHTML = '<div class="empty"><b>' + tx("Parça aramak için yukarıya yazın.") + '</b><br>' +
+      tx("LCSC kodu (C141632), parça adı (AMS1117) veya değer + kılıf (10k 0603).") + '<br><br>' +
+      tx("↑ ↓ ile gezin · <b>Enter</b> ekler ve şematikte imlece getirir") + '</div>';
     $("#meta").textContent = "";
     return;
   }
   var arr = filtered();
-  $("#meta").textContent = S.total ? S.items.length + " / " + num(S.total) + " sonuç" : "";
+  $("#meta").textContent = S.total ? S.items.length + " / " + num(S.total) + " " + tx("sonuç") : "";
   if (!arr.length) {
-    L.innerHTML = '<div class="empty">' + (S.items.length ? "Filtrelere uyan sonuç yok. <b>Stokta</b> / <b>Basic</b> filtrelerini kapatmayı deneyin."
-      : "Sonuç bulunamadı.") + "</div>";
+    L.innerHTML = '<div class="empty">' + (S.items.length ? tx("Filtrelere uyan sonuç yok. <b>Stokta</b> / <b>Basic</b> filtrelerini kapatmayı deneyin.")
+      : tx("Sonuç bulunamadı.")) + "</div>";
   } else {
     L.innerHTML = arr.map(function (i) {
       var img = i.image ? '<img src="' + esc(https(i.image)) + '" onerror="this.remove()">' : "";
@@ -284,14 +350,14 @@ function renderList() {
         '<div class="r-sub">' + esc(i.code) + " · " + esc(i.brand) + (i.package ? " · " + esc(i.package) : "") + '</div>' +
         '<div class="r-desc">' + esc(i.desc) + '</div></div>' +
         '<div class="r-side"><div class="r-price">' + money(i.price) + '</div>' +
-        '<div class="r-stock' + (i.stock ? "" : " zero") + '">' + (i.stock ? num(i.stock) + " adet" : "stok yok") + '</div>' +
-        '<div>' + (S.libCodes[i.code] ? '<span class="badge lib">✓ ekli</span> ' : "") +
+        '<div class="r-stock' + (i.stock ? "" : " zero") + '">' + (i.stock ? num(i.stock) + " " + tx("adet") : tx("stok yok")) + '</div>' +
+        '<div>' + (S.libCodes[i.code] ? '<span class="badge lib">' + tx("✓ ekli") + '</span> ' : "") +
         (i.basic ? '<span class="badge basic">Basic</span>' : '<span class="badge ext">Ext</span>') + '</div></div></div>';
     }).join("");
   }
   if (S.items.length < S.total)
-    L.insertAdjacentHTML("beforeend", '<button class="btn more" id="more">Daha fazla yükle (' +
-      num(S.total - S.items.length) + ' kaldı)</button>');
+    L.insertAdjacentHTML("beforeend", '<button class="btn more" id="more">' + tx("Daha fazla yükle") + ' (' +
+      num(S.total - S.items.length) + ' ' + tx("kaldı") + ')</button>');
 }
 
 var CATS = [["R", "Direnç"], ["C", "Kondansatör"], ["L", "Bobin"], ["D", "Diyot / LED"], ["Q", "Transistör"],
@@ -311,9 +377,9 @@ function libFiltered() {
 }
 function renderCats() {
   var n = {}; S.lib.forEach(function (p) { var c = catOf(p); n[c] = (n[c] || 0) + 1; });
-  var list = [["", "Tümü", S.lib.length]].concat(CATS.filter(function (c) { return n[c[0]]; })
-    .map(function (c) { return [c[0], c[1], n[c[0]]]; }));
-  if (n["?"]) list.push(["?", "Diğer", n["?"]]);
+  var list = [["", tx("Tümü"), S.lib.length]].concat(CATS.filter(function (c) { return n[c[0]]; })
+    .map(function (c) { return [c[0], tx(c[1]), n[c[0]]]; }));
+  if (n["?"]) list.push(["?", tx("Diğer"), n["?"]]);
   if (!list.some(function (c) { return c[0] === S.cat; })) S.cat = "";
   $("#cats").innerHTML = list.map(function (c) {
     return '<button class="cat' + (c[0] === S.cat ? " on" : "") + '" data-cat="' + esc(c[0]) + '">' +
@@ -322,10 +388,10 @@ function renderCats() {
 function renderLib() {
   var L = $("#list");
   renderCats();
-  if (!S.lib.length) { $("#meta").textContent = ""; L.innerHTML = '<div class="empty">Kütüphane henüz boş.</div>'; return; }
+  if (!S.lib.length) { $("#meta").textContent = ""; L.innerHTML = '<div class="empty">' + tx("Kütüphane henüz boş.") + '</div>'; return; }
   var arr = libFiltered();
-  $("#meta").textContent = arr.length + " / " + S.lib.length + " parça";
-  if (!arr.length) { L.innerHTML = '<div class="empty">Bu filtreye uyan parça yok.</div>'; return; }
+  $("#meta").textContent = arr.length + " / " + S.lib.length + " " + tx("parça");
+  if (!arr.length) { L.innerHTML = '<div class="empty">' + tx("Bu filtreye uyan parça yok.") + '</div>'; return; }
   L.innerHTML = arr.map(function (p) {
     return '<div class="row' + (S.cur && S.cur.code === p.code ? " on" : "") + '" data-c="' + esc(p.code) + '">' +
       (S.libImg[p.code] ? '<div class="thumb"><img src="' + esc(https(S.libImg[p.code])) + '" onerror="this.remove()"></div>'
@@ -341,6 +407,7 @@ function setTab(t) {
   S.tab = t;
   document.querySelectorAll(".tab").forEach(function (b) { b.classList.toggle("on", b.dataset.t === t); });
   $("#libbar").hidden = t !== "lib";
+  applyLang();
   if (t === "lib") send({ cmd: "library" });
   renderList();
 }
@@ -360,7 +427,7 @@ function select(code, scroll) {
   if (scroll) { var r = document.querySelector('.row[data-c="' + code + '"]'); if (r) r.scrollIntoView({ block: "nearest" }); }
   $("#add").disabled = $("#place").disabled = S.importing;
   if (S.details[code]) return showDetail(code);
-  $("#detail").innerHTML = '<div class="empty"><div class="spin"></div>' + esc(code) + " yükleniyor…</div>";
+  $("#detail").innerHTML = '<div class="empty"><div class="spin"></div>' + esc(code) + " " + tx("yükleniyor…") + "</div>";
   send({ cmd: "detail", code: code });
 }
 
@@ -376,22 +443,22 @@ function showDetail(code) {
 
   var badges = ['<span class="badge">' + esc(code) + "</span>"];
   if (S.items.indexOf(it) >= 0) badges.push(it.basic ? '<span class="badge basic">Basic</span>' : '<span class="badge ext">Extended</span>');
-  badges.push('<span class="badge ' + (stock ? "lib" : "none") + '">' + (stock ? "Stok: " + num(stock) : "Stok yok") + "</span>");
+  badges.push('<span class="badge ' + (stock ? "lib" : "none") + '">' + (stock ? tx("Stok: ") + num(stock) : tx("Stok yok")) + "</span>");
   if (pkg) badges.push('<span class="badge">' + esc(pkg) + "</span>");
-  if (S.libCodes[code]) badges.push('<span class="badge basic">✓ Kütüphanede: LCSC:' + esc(S.libCodes[code]) + "</span>");
+  if (S.libCodes[code]) badges.push('<span class="badge basic">' + tx("✓ Kütüphanede: ") + 'LCSC:' + esc(S.libCodes[code]) + "</span>");
 
   var imgs = (d.productImages || []).map(https);
   if (!imgs.length && it.image) imgs = [https(it.image)];
   var svg = d._svg || {}, tabs = [], panes = [];
   if (imgs.length) {
-    tabs.push(["foto", "Fotoğraf"]);
+    tabs.push(["foto", tx("Fotoğraf")]);
     panes.push('<div class="view"><img id="mainimg" src="' + esc(imgs[0]) + '"></div>' + (imgs.length > 1 ?
       '<div class="thumbs">' + imgs.map(function (u, n) { return '<img src="' + esc(u) + '" class="' + (n ? "" : "on") + '">'; }).join("") + "</div>" : ""));
   }
-  if (svg.schSvg) { tabs.push(["sch", "Sembol"]); panes.push('<div class="view"><img class="svg" src="' + svg.schSvg + '"></div>'); }
+  if (svg.schSvg) { tabs.push(["sch", tx("Sembol")]); panes.push('<div class="view"><img class="svg" src="' + svg.schSvg + '"></div>'); }
   if (svg.pcbSvg) { tabs.push(["pcb", "Footprint"]); panes.push('<div class="view dark"><img class="svg" src="' + svg.pcbSvg + '"></div>'); }
 
-  var params = [["Üretici", brand], ["Kategori", cat], ["Kılıf", pkg]].concat(
+  var params = [[tx("Üretici"), brand], [tx("Kategori"), cat], [tx("Kılıf"), pkg]].concat(
     (d.paramVOList || []).filter(function (p) { return p.paramValueEn && p.paramValueEn !== "-"; })
       .map(function (p) { return [p.paramNameEn, p.paramValueEn]; })).filter(function (r) { return r[1]; });
   var prices = (d.productPriceList || []).map(function (p) { return [p.ladder, p.usdPrice]; });
@@ -401,7 +468,7 @@ function showDetail(code) {
   var h = '<div class="card"><h1>' + esc(model) + '</h1><div class="sub">' + esc(brand) + "</div>" +
     '<div class="sub">' + esc(desc) + '</div><div class="badges">' + badges.join("") + "</div>" +
     '<div class="links">' + (ds ? '<button class="btn primary" data-open="' + esc(ds) + '">📄 Datasheet</button>' : "") +
-    '<button class="btn" data-open="' + esc(url) + '">LCSC sayfası</button>' +
+    '<button class="btn" data-open="' + esc(url) + '">' + tx("LCSC sayfası") + '</button>' +
     '<button class="btn" data-open="https://jlcpcb.com/partdetail/' + esc(code) + '">JLCPCB</button></div></div>';
   if (tabs.length) {
     h += '<div class="card"><div class="gtabs">' + tabs.map(function (t, n) {
@@ -410,36 +477,35 @@ function showDetail(code) {
   }
   if (D.cad === false) h += cadCard(code, model, D);
   h += '<div class="grid2">';
-  if (params.length) h += '<div class="card"><h3>Teknik özellikler</h3><table>' + params.map(function (r) {
+  if (params.length) h += '<div class="card"><h3>' + tx("Teknik özellikler") + '</h3><table>' + params.map(function (r) {
     return "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td></tr>"; }).join("") + "</table></div>";
-  if (prices.length) h += '<div class="card"><h3>Fiyat (USD)</h3><table class="price">' + prices.map(function (r) {
-    return "<tr><td>" + num(r[0]) + "+ adet</td><td>" + money(r[1]) + "</td></tr>"; }).join("") + "</table></div>";
+  if (prices.length) h += '<div class="card"><h3>' + tx("Fiyat (USD)") + '</h3><table class="price">' + prices.map(function (r) {
+    return "<tr><td>" + num(r[0]) + tx("+ adet") + "</td><td>" + money(r[1]) + "</td></tr>"; }).join("") + "</table></div>";
   h += "</div>";
-  if (!D.d) h += '<div class="card sub">LCSC detay bilgisi alınamadı; yalnızca arama sonucundaki bilgiler gösteriliyor.</div>';
+  if (!D.d) h += '<div class="card sub">' + tx("LCSC detay bilgisi alınamadı; yalnızca arama sonucundaki bilgiler gösteriliyor.") + '</div>';
   var box = $("#detail"); box.innerHTML = h; box.scrollTop = 0;
   $("#add").disabled = $("#place").disabled = S.importing || D.cad === false;
 }
 
 function cadCard(code, model, D) {
-  var h = '<div class="card warn"><h3>⚠ Bu parçanın KiCad çizimi yok</h3><div class="sub">' + esc(code) +
-    " için EasyEDA'da sembol ve footprint bulunmuyor, bu yüzden otomatik eklenemiyor. " +
-    "Aynı parçanın çizimi olan başka bir LCSC kodunu seçebilirsiniz.</div>";
+  var h = '<div class="card warn"><h3>' + tx("⚠ Bu parçanın KiCad çizimi yok") + '</h3><div class="sub">' + esc(code) +
+    tx(" için EasyEDA'da sembol ve footprint bulunmuyor, bu yüzden otomatik eklenemiyor. Aynı parçanın çizimi olan başka bir LCSC kodunu seçebilirsiniz.") + "</div>";
   if (!D.alts) {
     h += '<div class="links"><button class="btn primary" id="find-alts" data-model="' + esc(model) +
-         '">Çizimi olan alternatifleri bul</button></div>';
+         '">' + tx("Çizimi olan alternatifleri bul") + '</button></div>';
   } else if (D.alts === "busy") {
-    h += '<div class="alts"><div class="sub"><span class="spin"></span> Aranıyor…</div></div>';
+    h += '<div class="alts"><div class="sub"><span class="spin"></span> ' + tx("Aranıyor…") + '</div></div>';
   } else if (D.alts.error) {
     h += '<div class="sub">' + esc(D.alts.error) + "</div>";
   } else if (!D.alts.length) {
-    h += '<div class="sub"><b>Çizimi olan alternatif bulunamadı.</b> KiCad’in kendi kütüphanesinde aynı parça ' +
-         "varsa (ör. BC547 → Transistor_BJT:BC547) onu kullanabilirsiniz.</div>";
+    h += '<div class="sub"><b>' + tx("Çizimi olan alternatif bulunamadı.") + '</b> ' +
+         tx("KiCad’in kendi kütüphanesinde aynı parça varsa (ör. BC547 → Transistor_BJT:BC547) onu kullanabilirsiniz.") + "</div>";
   } else {
     h += '<div class="alts">' + D.alts.map(function (a) {
       return '<button class="alt" data-alt="' + esc(a.code) + '"><b>' + esc(a.code) + "</b><span>" +
         esc([a.model, a.brand, a.package].filter(Boolean).join(" · ")) + "</span>" +
         (a.basic ? '<i class="badge basic">Basic</i>' : "") +
-        '<i class="badge ' + (a.stock ? "lib" : "none") + '">' + (a.stock ? "Stok: " + num(a.stock) : "Stok yok") + "</i></button>";
+        '<i class="badge ' + (a.stock ? "lib" : "none") + '">' + (a.stock ? tx("Stok: ") + num(a.stock) : tx("Stok yok")) + "</i></button>";
     }).join("") + "</div>";
   }
   return h + "</div>";
@@ -450,12 +516,12 @@ function doImport(place) {
   if (!S.cur || S.importing) return;
   if (place && S.tab === "lib" && S.libCodes[S.cur.code]) {   // kutuphanede: indirmeden yerlestir
     S.importing = true; $("#add").disabled = $("#place").disabled = true;
-    $("#place").textContent = "Yerleştiriliyor…";
+    $("#place").textContent = tx("Yerleştiriliyor…");
     return send({ cmd: "place", symbol: S.libCodes[S.cur.code] });
   }
   var D = S.details[S.cur.code] || {}, d = D.d || {};
   S.importing = true; $("#add").disabled = $("#place").disabled = true;
-  $("#place").textContent = "Ekleniyor…";
+  $("#place").textContent = tx("Ekleniyor…");
   send({ cmd: "import", code: S.cur.code, place: !!place,
          ref: $("#ref").value.replace(/[^A-Za-z]/g, "") || "U", value: $("#val").value.trim(),
          desc: d.productIntroEn || S.cur.desc || "" });
@@ -468,8 +534,8 @@ var App = {
     S.busy = false;
     if (r.error) {
       if (r.page > 1) { S.page -= 1; renderList(); toast(esc(r.error), "err"); return; }
-      $("#list").innerHTML = '<div class="empty"><b>Arama yapılamadı</b><br>' + esc(r.error) +
-        '<br><br><button class="btn" id="retry">Tekrar dene</button></div>';
+      $("#list").innerHTML = '<div class="empty"><b>' + tx("Arama yapılamadı") + '</b><br>' + esc(r.error) +
+        '<br><br><button class="btn" id="retry">' + tx("Tekrar dene") + '</button></div>';
       return;
     }
     S.items = S.items.concat(r.items.filter(function (i) { return !S.items.some(function (x) { return x.code === i.code; }); }));
@@ -492,18 +558,18 @@ var App = {
   },
   onImport: function (r) {
     S.importing = false; $("#add").disabled = $("#place").disabled = !S.cur;
-    $("#place").textContent = "Ekle ve şematiğe yerleştir";
+    applyLang();
     if (r.nocad) {
       var D = S.details[r.code] = S.details[r.code] || { code: r.code };
-      D.cad = false; toast("<b>Eklenemedi</b><br>" + esc(r.error), "err");
+      D.cad = false; toast("<b>" + tx("Eklenemedi") + "</b><br>" + esc(r.error), "err");
       if (S.cur && S.cur.code === r.code) showDetail(r.code);
       return;
     }
-    if (r.error) { toast("<b>Eklenemedi</b><br>" + esc(r.error).slice(0, 400), "err"); return; }
-    toast("<b>✓ LCSC:" + esc(r.symbol) + "</b> " + (r.footprint === undefined ? "hazır" : "kütüphaneye eklendi") +
-          (r.pasted ? "<br>Şematikte imlecinize yapıştı, tıklayarak bırakın."
-           : r.placed ? "<br>Şematik açık değil: açınca <b>Ctrl+V</b> ile yerleştirin."
-           : "<br>Şematikte <b>A</b> ile bulabilirsiniz."), "ok");
+    if (r.error) { toast("<b>" + tx("Eklenemedi") + "</b><br>" + esc(r.error).slice(0, 400), "err"); return; }
+    toast("<b>✓ LCSC:" + esc(r.symbol) + "</b> " + (r.footprint === undefined ? tx("hazır") : tx("kütüphaneye eklendi")) +
+          "<br>" + (r.pasted ? tx("Şematikte imlecinize yapıştı, tıklayarak bırakın.")
+           : r.placed ? tx("Şematik açık değil: açınca <b>Ctrl+V</b> ile yerleştirin.")
+           : tx("Şematikte <b>A</b> ile bulabilirsiniz.")), "ok");
     send({ cmd: "library" });
     if (S.cur) showDetail(S.cur.code);
   },
@@ -513,12 +579,13 @@ var App = {
     if (S.cur && S.cur.code === r.code) showDetail(r.code);
   },
   onSetup: function (r) {
-    if (r.added) toast("<b>LCSC kütüphanesi KiCad'e tanıtıldı.</b><br>Footprint'lerin görünmesi için KiCad'i bir kez kapatıp açın.", "ok");
-    else if (r.error) toast("<b>Kütüphane tablosu güncellenemedi</b><br>" + esc(r.error), "err");
+    if (r.added) toast("<b>" + tx("LCSC kütüphanesi KiCad'e tanıtıldı.") + "</b><br>" + tx("Footprint'lerin görünmesi için KiCad'i bir kez kapatıp açın."), "ok");
+    else if (r.error) toast("<b>" + tx("Kütüphane tablosu güncellenemedi") + "</b><br>" + esc(r.error), "err");
   },
   focus: function () { $("#q").focus(); $("#q").select(); },
   info: function (i) {
-    $("#logo").title = ["LCSC Parça Ekle v" + i.version, "Kütüphane: " + i.lib_dir, "Log: " + i.log].join("\n");
+    $("#logo").title = ["LCSC Part Importer v" + i.version, tx("Kütüphane: ") + i.lib_dir, "Log: " + i.log];
+    if (!store("lang") && i.lang && i.lang !== LANG) setLang(i.lang, false).join("\n");
   }
 };
 
@@ -531,6 +598,7 @@ $("#q").addEventListener("keydown", function (e) {
 ["#f-stock", "#f-basic"].forEach(function (id) {
   $(id).onclick = function () { this.classList.toggle("on"); store(id, this.classList.contains("on") ? "1" : "0"); renderList(); };
 });
+$("#lang").onclick = function () { setLang(LANG === "en" ? "tr" : "en", true); };
 $("#sort").onchange = function () { store("sort", this.value); renderList(); };
 document.querySelectorAll(".tab").forEach(function (b) { b.onclick = function () { setTab(b.dataset.t); }; });
 
@@ -625,7 +693,8 @@ document.addEventListener("keydown", function (e) {
 })();
 
 renderList();
-$("#detail").innerHTML = '<div class="empty">Bir parça seçince fotoğrafı, sembolü, footprint\'i ve teknik özellikleri burada görünür.</div>';
+applyLang();
+$("#detail").innerHTML = '<div class="empty">' + tx("Bir parça seçince fotoğrafı, sembolü, footprint'i ve teknik özellikleri burada görünür.") + '</div>';
 App.focus();
 send({ cmd: "ready" });
 </script>

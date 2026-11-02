@@ -14,7 +14,8 @@ import wx.html2
 
 from . import __version__, core, winpaste
 
-TITLE = "LCSC Parça Ekle"
+TITLES = {"tr": "LCSC Parça Ekle", "en": "LCSC Part Importer"}
+TITLE = TITLES[core.LANG]
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(os.environ.get("LOCALAPPDATA", HERE), "lcsc_importer", "lcsc_importer.log")
 
@@ -73,12 +74,15 @@ class LcscFrame(wx.Frame):
             return
         cmd = msg.get("cmd")
         if cmd == "ready":
-            self.js("info", {"version": __version__, "lib_dir": core.LIB_DIR, "log": LOG_FILE})
+            self.js("info", {"version": __version__, "lib_dir": core.LIB_DIR, "log": LOG_FILE, "lang": core.LANG})
             self._bg("onSetup", self._setup)
         if cmd in ("ready", "library"):
             self._bg("onLibrary", core.library_parts)
         elif cmd == "libimages":
             self._bg("onLibImages", lambda: core.part_images(msg.get("codes") or []))
+        elif cmd == "lang":
+            core.LANG = "en" if msg.get("lang") == "en" else "tr"
+            self.SetTitle("%s  v%s" % (TITLES[core.LANG], __version__))
         elif cmd == "search":
             self._bg("onSearch", lambda: self._search(msg))
         elif cmd == "detail":

@@ -1,19 +1,30 @@
 {
   "$schema": "https://go.kicad.org/api/schemas/v1",
   "identifier": "io.github.recepuysal.kicad-lcsc-importer",
-  "name": "LCSC Parça Ekle",
-  "description": "LCSC/JLCPCB parçalarını resim ve teknik bilgileriyle arayın, tek tıkla kütüphaneye ekleyip şematikte imlece getirin.",
-  "runtime": { "type": "python" },
+  "name": "LCSC Part Importer",
+  "description": "Search LCSC/JLCPCB parts with photos and specs, add them to your library and place them in the schematic in one click.",
+  "runtime": {
+    "type": "python"
+  },
   "actions": [
     {
       "identifier": "open",
-      "name": "LCSC Parça Ekle",
-      "description": "LCSC parça arama penceresini açar",
+      "name": "LCSC Part Importer",
+      "description": "Open the LCSC part search window (LCSC parça arama penceresi)",
       "show-button": true,
-      "scopes": ["schematic", "pcb"],
+      "scopes": [
+        "schematic",
+        "pcb"
+      ],
       "entrypoint": "launch.py",
-      "icons-light": ["icon.png", "icon48.png"],
-      "icons-dark": ["icon.png", "icon48.png"]
+      "icons-light": [
+        "icon.png",
+        "icon48.png"
+      ],
+      "icons-dark": [
+        "icon.png",
+        "icon48.png"
+      ]
     }
   ]
 }

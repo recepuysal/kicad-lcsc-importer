@@ -1,83 +1,89 @@
-# LCSC Parça Ekle — KiCad 10 eklentisi
+<p align="center"><img src="docs/logo.png" width="112" alt="LCSC Part Importer logo"></p>
 
-LCSC / JLCPCB parçalarını **fotoğraf, sembol ve footprint önizlemesi, teknik özellik, fiyat ve stok**
-bilgisiyle arayın; tek tıkla KiCad kütüphanenize ekleyin ve şematikte **imlecinize yapışık** olarak
-getirin. EasyEDA'daki parça ekleme deneyimini KiCad'e taşır.
+<h1 align="center">LCSC Part Importer for KiCad 10</h1>
 
-![Parça arama ve detay](docs/arama.png)
+<p align="center"><b>English</b> · <a href="README.tr.md">Türkçe</a></p>
 
-## Özellikler
+Search LCSC / JLCPCB parts with **photos, symbol & footprint previews, specifications, prices and stock**,
+add them to your KiCad library in one click and get them **attached to your cursor** in the schematic.
+It brings the EasyEDA part-placing experience to KiCad.
 
-- **Arama:** parça adı (`AMS1117`), değer + kılıf (`10k 0603`) ya da LCSC kodu (`C141632`).
-  Stokta / Basic filtreleri, stok ya da fiyata göre sıralama.
-- **Detay paneli:** fotoğraf galerisi, sembol ve footprint önizlemesi, teknik özellikler, kademeli
-  fiyat tablosu, datasheet / LCSC / JLCPCB bağlantıları.
-- **Tek tıkla yerleştirme:** parça `LCSC` kütüphanesine eklenir (sembol, footprint, 3B model),
-  şematik editörü öne gelir ve sembol imlece yapışık gelir; tıklayıp bırakın.
-- **Kütüphanem:** eklediğiniz parçalar resimleriyle listelenir; **Direnç, Kondansatör, Diyot,
-  Transistör, Entegre…** türlerine göre filtreleyip arayabilir, indirmeden anında yerleştirebilirsiniz.
-- **Çizimi olmayan parçalar:** EasyEDA'da sembolü/footprint'i olmayan bir kod seçerseniz, aynı
-  parçanın çizimi olan diğer LCSC kodları önerilir.
-- Açık/koyu tema, klavye ile kullanım (`Ctrl+F`, `↑ ↓`, `Enter`).
+![Part search and details](docs/search-en.png)
 
-![Kütüphanem: türe göre filtre](docs/kutuphanem.png)
+## Features
 
-## Gereksinimler
+- **Search** by part name (`AMS1117`), value + package (`10k 0603`) or LCSC code (`C141632`).
+  In-stock / Basic filters, sort by stock or price.
+- **Details panel:** photo gallery, symbol and footprint preview, specifications, price breaks,
+  datasheet / LCSC / JLCPCB links.
+- **One-click placement:** the part is imported into the `LCSC` library (symbol, footprint, 3D model),
+  the schematic editor comes to the front and the symbol is attached to your cursor — just click to drop it.
+- **My library:** imported parts with photos; filter by **resistor, capacitor, diode, transistor,
+  IC…**, search, and place instantly without downloading again.
+- **Parts without drawings:** if EasyEDA has no symbol/footprint for a code, other LCSC codes of the
+  same part that do have drawings are suggested.
+- **English and Turkish** interface (follows KiCad / Windows language, switch with the `EN`/`TR` button),
+  light/dark theme, keyboard friendly (`Ctrl+F`, `↑ ↓`, `Enter`).
 
-- **KiCad 10** (Windows)
-- İnternet bağlantısı (LCSC/JLCPCB ve EasyEDA'dan veri çekilir)
+![My library, filtered by type](docs/library-en.png)
 
-Ayrıca Python ya da başka bir şey kurmanız gerekmez; eklenti ihtiyaç duyduğu paketi
-(`easyeda2kicad`) ilk açılışta KiCad üzerinden kendisi kurar.
+## Requirements
 
-## Kurulum
+- **KiCad 10** on **Windows**
+- Internet connection (data comes from LCSC/JLCPCB and EasyEDA)
 
-1. **KiCad API'sini açın:** KiCad ana penceresinde **Tercihler → Tercihler… → Eklentiler**
-   sayfasında **"KiCad API'sini Etkinleştir"** kutusunu işaretleyip **Tamam**'a basın.
-2. **Paketi indirin:** [Releases](https://github.com/recepuysal/kicad-lcsc-importer/releases/latest)
-   sayfasından `kicad-lcsc-importer-x.y.z.zip` dosyasını indirin. **Zip'i açmayın.**
-3. **Kurun:** KiCad ana penceresinde **Araçlar → Eklenti ve İçerik Yöneticisi** (Plugin and Content
-   Manager) → sol alttaki **Dosyadan Yükle…** (Install from File…) → indirdiğiniz zip'i seçin.
-4. **KiCad'i kapatıp yeniden açın.** İlk açılışta KiCad eklentinin Python ortamını hazırlar
-   (birkaç saniye ile bir dakika arası sürebilir, internet gerekir).
-5. Şematiği açın; üst araç çubuğunun sağ ucunda **LCSC** düğmesi görünür.
+Nothing else to install — no separate Python. The plugin installs the package it needs
+(`easyeda2kicad`) through KiCad on first start.
 
-İlk çalıştırmada `Belgeler\Kicad\LCSC` altında `LCSC` sembol ve footprint kütüphanesi
-oluşturulur ve KiCad'e otomatik tanıtılır. Footprint'lerin PCB tarafında görünmesi için
-KiCad'i **bir kez daha** yeniden başlatın (ekranda bununla ilgili bir uyarı çıkar).
+## Installation
 
-## Kullanım
+1. **Enable the KiCad API:** in the KiCad main window open **Preferences → Preferences… → Plugins**,
+   tick **"Enable KiCad API"** and press **OK**.
+2. **Download the package:** get `kicad-lcsc-importer-x.y.z.zip` from the
+   [Releases](https://github.com/recepuysal/kicad-lcsc-importer/releases/latest) page. **Do not unzip it.**
+3. **Install:** in the KiCad main window open **Tools → Plugin and Content Manager**, click
+   **Install from File…** (bottom left) and pick the zip.
+4. **Restart KiCad.** On the first start KiCad prepares the plugin's Python environment
+   (a few seconds up to a minute; needs internet).
+5. Open a schematic — the **LCSC** button appears at the right end of the top toolbar.
 
-1. Şematikte **LCSC** düğmesine basın (pencere zaten açıksa öne gelir).
-2. Parçayı arayın, listeden seçin; sağda fotoğraf, sembol, footprint ve özellikleri görün.
-3. Gerekirse **Referans** (R, C, U…) ve **Değer** alanlarını düzenleyin.
-4. **Ekle ve şematiğe yerleştir** (ya da `Enter`): sembol imlecinize gelir, tıklayıp bırakın.
-   Vazgeçmek için `Esc`.
-5. **Kütüphaneye ekle** yalnızca kütüphaneye ekler; şematikte `A` tuşuyla `LCSC:` altında bulursunuz.
+On first run an `LCSC` symbol and footprint library is created under `Documents\Kicad\LCSC`
+and registered in KiCad automatically. Restart KiCad **once more** so the footprints show up on the
+PCB side (the app shows a reminder).
 
-## Sorun giderme
+## Usage
 
-| Sorun | Çözüm |
+1. Click the **LCSC** button in the schematic editor (if the window is already open it comes to front).
+2. Search, pick a part from the list and check its photo, symbol, footprint and specs on the right.
+3. Optionally edit **Reference** (R, C, U…) and **Value**.
+4. **Add & place in schematic** (or `Enter`): the symbol is attached to your cursor; click to drop it,
+   `Esc` to cancel.
+5. **Add to library** only imports the part; find it in the schematic with `A` under `LCSC:`.
+
+## Troubleshooting
+
+| Problem | Fix |
 |---|---|
-| Araç çubuğunda LCSC düğmesi yok | Tercihler → Eklentiler'de API açık mı? KiCad'i yeniden başlatın. İlk açılışta ortam kurulumu birkaç saniye sürer. |
-| "easyeda2kicad bulunamadı" | İlk açılıştaki kurulum internet olmadan tamamlanamamış olabilir. Eklenti ve İçerik Yöneticisi'nden eklentiyi kaldırıp yeniden kurun. |
-| "Bu parçanın KiCad çizimi yok" | Parçanın EasyEDA'da çizimi yok. Uyarıdaki **Çizimi olan alternatifleri bul** düğmesini kullanın. |
-| "… istekleri sınırlıyor (HTTP 403)" | JLCPCB arama servisi geçici olarak sınırlıyor. Birkaç dakika bekleyin; LCSC koduyla arama bu sırada da çalışır. |
-| Sembol imlece gelmedi | Şematik editörü açık olmalı. Açık değilse parça panoya kopyalanır, şematikte `Ctrl+V` ile yerleştirin. |
+| No LCSC button in the toolbar | Is the API enabled in Preferences → Plugins? Restart KiCad. The first-start setup takes a few seconds. |
+| "easyeda2kicad not found" | The first-start setup could not finish (e.g. no internet). Remove and reinstall the plugin from the Plugin and Content Manager. |
+| "This part has no KiCad drawing" | EasyEDA has no drawing for this code. Use **Find alternatives with drawings**. |
+| "… is rate-limiting requests (HTTP 403)" | JLCPCB search is temporarily limited. Wait a few minutes; searching by LCSC code still works. |
+| Symbol did not attach to the cursor | The schematic editor must be open. Otherwise the part is copied to the clipboard — press `Ctrl+V` in the schematic. |
 
-Hata kaydı: `%LOCALAPPDATA%\lcsc_importer\lcsc_importer.log`
+Log file: `%LOCALAPPDATA%\lcsc_importer\lcsc_importer.log`
 
-## Geliştirme
+## Development
 
 ```
-plugin/            KiCad'e kurulan eklenti (plugin.json, launch.py, lcsc_importer/)
-pcm/metadata.json  Eklenti ve İçerik Yöneticisi paket bilgisi
-build.py           dist/kicad-lcsc-importer-<sürüm>.zip üretir
+plugin/            the plugin installed into KiCad (plugin.json, launch.py, lcsc_importer/)
+pcm/metadata.json  Plugin and Content Manager package metadata
+build.py           builds dist/kicad-lcsc-importer-<version>.zip
+art/logo.svg       logo source
 ```
 
-Parça içe aktarma [easyeda2kicad](https://github.com/uPesy/easyeda2kicad.py) ile yapılır.
-Bu proje LCSC, JLCPCB ya da EasyEDA ile bağlantılı değildir.
+Parts are imported with [easyeda2kicad](https://github.com/uPesy/easyeda2kicad.py).
+This project is not affiliated with LCSC, JLCPCB or EasyEDA.
 
-## Lisans
+## License
 
 MIT

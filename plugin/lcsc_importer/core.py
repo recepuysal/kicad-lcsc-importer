@@ -48,6 +48,31 @@ _cache_lock = threading.Lock()
 log = logging.getLogger("lcsc_importer")
 
 
+def detect_lang():
+    """'tr' ya da 'en': once KiCad'in arayuz dili, 'Default' ise Windows dili."""
+    try:
+        import json as _json
+        with open(os.path.join(KICAD_CFG, "kicad_common.json"), encoding="utf-8") as f:
+            lang = (_json.load(f).get("system") or {}).get("language") or "Default"
+    except (OSError, ValueError):
+        lang = "Default"
+    if lang and lang.lower() != "default":
+        return "tr" if lang.lower().startswith(("tr", "türk", "turk")) else "en"
+    try:
+        import ctypes
+        return "tr" if ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0x3FF == 0x1F else "en"
+    except (AttributeError, OSError):
+        return "en"
+
+
+LANG = detect_lang()
+
+
+def T(tr, en):
+    """Kullaniciya gosterilen mesajin secili dildeki hali."""
+    return en if LANG == "en" else tr
+
+
 class ServiceError(Exception):
     """Kullaniciya oldugu gibi gosterilebilecek servis hatasi."""
 
@@ -72,8 +97,10 @@ def _cached(key, fn):
 def _check(r, service):
     if r.status_code in (403, 429):
         log.warning("%s %s dondu: %s", service, r.status_code, r.url)
-        raise ServiceError("%s şu an istekleri sınırlıyor (HTTP %d). Birkaç dakika sonra tekrar "
-                           "deneyin. LCSC kodu (ör. C141632) ile arama bu sırada da çalışır."
+        raise ServiceError(T("%s şu an istekleri sınırlıyor (HTTP %d). Birkaç dakika sonra tekrar "
+                             "deneyin. LCSC kodu (ör. C141632) ile arama bu sırada da çalışır.",
+                             "%s is rate-limiting requests right now (HTTP %d). Try again in a few "
+                             "minutes. Searching by LCSC code (e.g. C141632) still works meanwhile.")
                            % (service, r.status_code))
     r.raise_for_status()
 
@@ -100,7 +127,8 @@ def _jlc_search(keyword, page, page_size):
     try:
         r = _session.post(JLC_SEARCH, json=body, timeout=20)
     except requests.RequestException as ex:
-        raise ServiceError("JLCPCB'ye bağlanılamadı: %s" % ex.__class__.__name__) from ex
+        raise ServiceError(T("JLCPCB'ye bağlanılamadı: %s", "Could not connect to JLCPCB: %s")
+                           % ex.__class__.__name__) from ex
     _check(r, "JLCPCB")
     data = r.json().get("data") or {}
     info = data.get("componentPageInfo") or {}
@@ -327,8 +355,10 @@ def find_easyeda2kicad():
         hits = sorted(glob.glob(p), reverse=True)
         if hits:
             return [hits[0]]
-    raise RuntimeError("easyeda2kicad bulunamadı. KiCad'de Tercihler → Eklentiler'de API açık olmalı; "
-                       "eklenti ilk açılışta gerekli paketleri kendisi kurar.")
+    raise RuntimeError(T("easyeda2kicad bulunamadı. KiCad'de Tercihler → Eklentiler'de API açık olmalı; "
+                         "eklenti ilk açılışta gerekli paketleri kendisi kurar.",
+                         "easyeda2kicad not found. Enable the KiCad API in Preferences → Plugins; "
+                         "the plugin installs its packages on first start."))
 
 
 def _add_lib_row(table_path, kind, uri):
@@ -390,9 +420,11 @@ def import_part(code, ref_prefix=None, description=None, value=None):
     fp = re.search(r"Footprint name\s*:\s*(.+)", log)
     if not sym:
         if "Failed to fetch data" in log and has_cad(code) is False:
-            raise NoCadError("%s için EasyEDA'da sembol/footprint çizimi yok, bu yüzden otomatik "
-                             "eklenemiyor. Aynı parçanın çizimi olan başka bir LCSC kodunu seçin." % code)
-        raise RuntimeError("Ice aktarma basarisiz:\n" + log.strip())
+            raise NoCadError(T("%s için EasyEDA'da sembol/footprint çizimi yok, bu yüzden otomatik "
+                               "eklenemiyor. Aynı parçanın çizimi olan başka bir LCSC kodunu seçin.",
+                               "%s has no symbol/footprint on EasyEDA, so it can't be imported "
+                               "automatically. Pick another LCSC code for the same part.") % code)
+        raise RuntimeError(T("İçe aktarma başarısız:\n", "Import failed:\n") + log.strip())
     name = sym.group(1).strip()
     _patch_symbol(name, ref_prefix, value)
     return {"symbol": name, "footprint": fp.group(1).strip() if fp else "", "log": log}

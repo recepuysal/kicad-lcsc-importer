@@ -1,26 +1,36 @@
 {
   "$schema": "https://go.kicad.org/pcm/schemas/v2",
-  "name": "LCSC Parça Ekle",
-  "description": "LCSC/JLCPCB parçalarını resimli arayıp tek tıkla şematiğe yerleştirin.",
-  "description_full": "LCSC ve JLCPCB parçalarını fotoğraf, sembol/footprint önizlemesi, teknik özellik, fiyat ve stok bilgisiyle arayın. Parça easyeda2kicad ile LCSC kütüphanesine eklenir ve şematik editöründe imlece yapışık gelir. Kütüphanem sekmesinde eklenen parçalar türe göre filtrelenir. KiCad API'sinin (Tercihler > Eklentiler) açık olması gerekir. Şu an yalnızca Windows.",
+  "name": "LCSC Part Importer",
+  "description": "Search LCSC/JLCPCB parts with photos and place them in the schematic in one click.",
+  "description_full": "Search LCSC and JLCPCB parts with photos, symbol/footprint previews, specifications, prices and stock. Parts are imported into an LCSC library via easyeda2kicad and attached to your cursor in the schematic editor. The 'My library' tab filters imported parts by type. English and Turkish UI. Requires the KiCad API (Preferences > Plugins). Windows only for now.\n\nLCSC/JLCPCB parçalarını resimli arayın, tek tıkla şematiğe yerleştirin. Türkçe ve İngilizce arayüz.",
   "identifier": "io.github.recepuysal.kicad-lcsc-importer",
   "type": "plugin",
   "author": {
     "name": "Recep Uysal",
-    "contact": { "github": "https://github.com/recepuysal" }
+    "contact": {
+      "github": "https://github.com/recepuysal"
+    }
   },
   "license": "MIT",
   "resources": {
     "homepage": "https://github.com/recepuysal/kicad-lcsc-importer"
   },
-  "tags": ["lcsc", "jlcpcb", "easyeda", "library", "parts"],
+  "tags": [
+    "lcsc",
+    "jlcpcb",
+    "easyeda",
+    "library",
+    "parts"
+  ],
   "versions": [
     {
-      "version": "1.1.0",
+      "version": "1.2.0",
       "status": "stable",
       "kicad_version": "10.0",
       "runtime": "ipc",
-      "platforms": ["windows"]
+      "platforms": [
+        "windows"
+      ]
     }
   ]
 }
