@@ -98,13 +98,28 @@ class LcscFrame(wx.Frame):
             wx.LaunchDefaultBrowser(msg["url"])
 
     # ---------------------------------------------------------- isler
-    @staticmethod
-    def _setup():
+    def _setup(self):
         try:
-            return {"added": core.ensure_lib_tables()}
+            added = core.ensure_lib_tables()
+            if added:
+                wx.CallAfter(self._restart_notice)
+            return {"added": added}
         except Exception as ex:              # noqa: BLE001
             logging.getLogger("lcsc_importer").exception("kutuphane tablosu")
             return {"added": False, "error": str(ex)}
+
+    def _restart_notice(self):
+        msg = core.T(
+            "LCSC kütüphanesi KiCad'e tanıtıldı.\n\n"
+            "KiCad kütüphane listesini yalnızca açılışta okur. Parçaları şematiğe ekleyebilirsiniz, "
+            "ancak PCB'ye aktarırken footprint'lerin bulunması için KiCad'i bir kez tamamen kapatıp "
+            "yeniden açın.\n\nBu uyarı yalnızca ilk kurulumda çıkar.",
+            "The LCSC library has been registered in KiCad.\n\n"
+            "KiCad only reads its library list at startup. You can already add parts to the schematic, "
+            "but close and reopen KiCad once so the footprints are found when updating the PCB.\n\n"
+            "This notice is shown only on first setup.")
+        wx.MessageBox(msg, core.T("KiCad'i yeniden başlatın", "Restart KiCad"),
+                      wx.OK | wx.ICON_INFORMATION, self)
 
     @staticmethod
     def _search(msg):

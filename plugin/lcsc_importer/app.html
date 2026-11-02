@@ -579,8 +579,7 @@ var App = {
     if (S.cur && S.cur.code === r.code) showDetail(r.code);
   },
   onSetup: function (r) {
-    if (r.added) toast("<b>" + tx("LCSC kütüphanesi KiCad'e tanıtıldı.") + "</b><br>" + tx("Footprint'lerin görünmesi için KiCad'i bir kez kapatıp açın."), "ok");
-    else if (r.error) toast("<b>" + tx("Kütüphane tablosu güncellenemedi") + "</b><br>" + esc(r.error), "err");
+    if (r.error) toast("<b>" + tx("Kütüphane tablosu güncellenemedi") + "</b><br>" + esc(r.error), "err");
   },
   focus: function () { $("#q").focus(); $("#q").select(); },
   info: function (i) {
