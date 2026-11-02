@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>LCSC Parça Ekle</title>
+<style>
+:root {
+  --bg: #f4f5f7; --panel: #ffffff; --panel2: #f9fafb; --fg: #1b2230; --mut: #69717f; --line: #e3e6eb;
+  --acc: #1f6feb; --acc-fg: #ffffff; --acc-soft: #e8f0fe; --hover: #f1f4f9; --sel: #e3edff;
+  --ok: #10893e; --ok-soft: #e4f5ea; --warn: #b45309; --warn-soft: #fdf1e1; --bad: #b42318; --bad-soft: #fdecea;
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  --left: 560px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15181e; --panel: #1c2028; --panel2: #222731; --fg: #e6e9ef; --mut: #98a1b0; --line: #2d333e;
+    --acc: #4c8dff; --acc-soft: #1f2d45; --hover: #242a35; --sel: #22324d;
+    --ok: #4ccb7a; --ok-soft: #173325; --warn: #f0a44b; --warn-soft: #3a2a16; --bad: #ff7a6b; --bad-soft: #3d1f1c;
+    --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { font: 13px/1.45 "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--fg);
+  display: grid; grid-template-rows: auto 1fr; overflow: hidden; user-select: none; }
+input, button, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.sel-text { user-select: text; }
+
+/* ---------- ust cubuk ---------- */
+header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--panel);
+  border-bottom: 1px solid var(--line); }
+.logo { width: 30px; height: 30px; border-radius: 8px; background: var(--acc); color: #fff; font-weight: 700;
+  display: grid; place-items: center; flex: none; }
+.search { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--line);
+  border-radius: 9px; padding: 0 10px; height: 36px; min-width: 200px; }
+.search:focus-within { border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-soft); }
+.search svg { flex: none; opacity: .55; }
+.search input { flex: 1; border: 0; outline: 0; background: transparent; height: 100%; }
+.search kbd { font: 11px "Segoe UI"; color: var(--mut); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+.btn { height: 34px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel);
+  white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--acc); border-color: var(--acc); color: var(--acc-fg); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: .5; cursor: default; filter: none; }
+.chip { height: 30px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel);
+  color: var(--mut); white-space: nowrap; }
+.chip.on { background: var(--acc-soft); border-color: transparent; color: var(--acc); font-weight: 600; }
+select.chip { padding-right: 6px; }
+select.chip option { background: var(--panel); color: var(--fg); }
+
+/* ---------- ana alan ---------- */
+main { display: grid; grid-template-columns: var(--left) 6px minmax(560px, 1fr); min-height: 0; }
+.left, .right { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--panel); }
+.divider { cursor: col-resize; background: var(--bg); position: relative; }
+.divider::after { content: ""; position: absolute; inset: 0 2px; border-radius: 2px; }
+.divider:hover::after, .divider.drag::after { background: var(--acc); opacity: .5; }
+
+.tabs { display: flex; gap: 2px; padding: 8px 10px 0; border-bottom: 1px solid var(--line); flex: none; }
+.tab { padding: 7px 12px; border: 0; background: none; color: var(--mut); border-bottom: 2px solid transparent;
+  margin-bottom: -1px; }
+.tab.on { color: var(--fg); border-bottom-color: var(--acc); font-weight: 600; }
+.tab .n { font-size: 11px; background: var(--panel2); border: 1px solid var(--line); border-radius: 999px;
+  padding: 0 6px; margin-left: 4px; color: var(--mut); }
+.meta { margin-left: auto; align-self: center; color: var(--mut); font-size: 12px; padding-bottom: 6px; }
+
+.list { flex: 1; overflow-y: auto; overflow-x: hidden; outline: none; }
+.row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  padding: 8px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.row:hover { background: var(--hover); }
+.row.on { background: var(--sel); box-shadow: inset 3px 0 0 var(--acc); }
+.thumb { width: 44px; height: 44px; border-radius: 7px; background: #fff; border: 1px solid var(--line);
+  display: grid; place-items: center; overflow: hidden; color: #9aa3af; font-size: 10px; }
+.thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.thumb.ref { background: var(--acc-soft); color: var(--acc); border-color: transparent; font-size: 15px; font-weight: 700; }
+.r-main { min-width: 0; }
+.r-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-sub, .r-desc { color: var(--mut); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-side { text-align: right; font-size: 12px; white-space: nowrap; }
+.r-price { font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
+.r-stock { color: var(--mut); font-variant-numeric: tabular-nums; }
+.r-stock.zero { color: var(--bad); }
+.badge { display: inline-block; font-size: 11px; border-radius: 999px; padding: 0 7px; line-height: 18px;
+  background: var(--panel2); color: var(--mut); border: 1px solid var(--line); }
+.badge.basic { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.badge.ext { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.badge.lib { background: var(--acc-soft); color: var(--acc); border-color: transparent; }
+.badge.none { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.libbar { padding: 8px 10px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 7px; background: var(--panel); }
+.libbar[hidden] { display: none; }
+.libbar input { height: 30px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel2); color: var(--fg);
+  padding: 0 10px; font: inherit; font-size: 13px; outline: none; }
+.libbar input:focus { border-color: var(--acc); }
+.cats { display: flex; flex-wrap: wrap; gap: 5px; }
+.cat { height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel);
+  color: var(--fg); font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.cat:hover { background: var(--hover); }
+.cat.on { background: var(--acc); border-color: var(--acc); color: var(--acc-fg); }
+.cat i { font-style: normal; opacity: .7; margin-left: 3px; }
+.card.warn { background: var(--warn-soft); border-color: transparent; }
+.card.warn h3 { color: var(--warn); margin-top: 0; }
+.alts { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.alt { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; background: var(--panel);
+  border: 1px solid var(--line); cursor: pointer; text-align: left; color: var(--fg); font: inherit; }
+.alt:hover { background: var(--hover); }
+.alt b { white-space: nowrap; }
+.alt span { color: var(--mut); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.more { margin: 12px auto; display: block; }
+.empty { color: var(--mut); text-align: center; padding: 48px 24px; line-height: 1.7; }
+.empty b { color: var(--fg); }
+
+/* ---------- detay ---------- */
+.detail { flex: 1; overflow-y: auto; padding: 14px; background: var(--bg); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px;
+  margin-bottom: 12px; box-shadow: var(--shadow); }
+h1 { font-size: 20px; margin: 0 0 2px; line-height: 1.25; word-break: break-word; }
+.sub { color: var(--mut); }
+.badges { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+.badges .badge { font-size: 12px; line-height: 22px; padding: 0 9px; }
+.links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.links .btn { height: 30px; font-size: 12.5px; padding: 0 12px; }
+.gtabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.gtab { padding: 5px 12px; border-radius: 7px; border: 1px solid transparent; background: none; color: var(--mut); }
+.gtab.on { background: var(--acc-soft); color: var(--acc); font-weight: 600; }
+.view { height: 300px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line);
+  background: #fff; overflow: hidden; }
+.view.dark { background: #0d0f12; }
+.view img { max-width: 94%; max-height: 286px; object-fit: contain; }
+.view img.svg { width: 92%; height: 280px; }
+.thumbs { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.thumbs img { width: 50px; height: 50px; object-fit: contain; border: 1px solid var(--line); border-radius: 7px;
+  cursor: pointer; background: #fff; }
+.thumbs img.on { border-color: var(--acc); box-shadow: 0 0 0 2px var(--acc-soft); }
+h3 { margin: 0 0 8px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--mut); }
+table { width: 100%; border-collapse: collapse; }
+td { padding: 6px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td:first-child { color: var(--mut); width: 42%; }
+.price td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.detail { container-type: inline-size; }
+@container (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+
+/* ---------- islem cubugu ---------- */
+.actions { flex: none; display: flex; align-items: flex-end; gap: 8px; padding: 10px 14px;
+  border-top: 1px solid var(--line); background: var(--panel); }
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field label { font-size: 11px; color: var(--mut); }
+.field { min-width: 0; }
+.field input { width: 100%; height: 34px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel2);
+  padding: 0 9px; outline: 0; }
+.field input:focus { border-color: var(--acc); }
+.spacer { flex: 1; }
+
+/* ---------- yukleniyor / bildirim ---------- */
+.spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--acc);
+  animation: r .8s linear infinite; margin: 0 auto 10px; }
+@keyframes r { to { transform: rotate(360deg); } }
+.toast { position: fixed; right: 16px; bottom: 74px; max-width: 460px; padding: 11px 14px; border-radius: 10px;
+  background: #1b2230; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.25); opacity: 0; transform: translateY(8px);
+  transition: .2s; pointer-events: none; z-index: 9; line-height: 1.5; }
+.toast.on { opacity: 1; transform: none; }
+.toast.ok { background: #0f6b34; } .toast.err { background: #a3261a; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--mut); }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo" id="logo" title="LCSC Parça Ekle">C</div>
+  <div class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" autocomplete="off" spellcheck="false" placeholder="Parça adı, değer veya LCSC kodu — ör. C141632, 10k 0603, AMS1117">
+    <kbd>Ctrl+F</kbd>
+  </div>
+  <button class="btn primary" id="go">Ara</button>
+  <button class="chip on" id="f-stock" title="Stoğu olmayanları gizle">Stokta</button>
+  <button class="chip" id="f-basic" title="JLCPCB Basic parçalar (montaj ücreti yok)">Basic</button>
+  <select class="chip" id="sort" title="Sıralama">
+    <option value="stock">Stok ↓</option>
+    <option value="price">Fiyat ↑</option>
+    <option value="model">Ad A→Z</option>
+    <option value="none">API sırası</option>
+  </select>
+</header>
+
+<main>
+  <section class="left">
+    <div class="tabs">
+      <button class="tab on" data-t="res">Sonuçlar <span class="n" id="n-res">0</span></button>
+      <button class="tab" data-t="lib">Kütüphanem <span class="n" id="n-lib">0</span></button>
+      <span class="meta" id="meta"></span>
+    </div>
+    <div class="libbar" id="libbar" hidden>
+      <input id="lq" autocomplete="off" spellcheck="false" placeholder="Kütüphanede ara: ad, değer, kod…">
+      <div class="cats" id="cats"></div>
+    </div>
+    <div class="list" id="list" tabindex="0"></div>
+  </section>
+  <div class="divider" id="div"></div>
+  <section class="right">
+    <div class="detail sel-text" id="detail"></div>
+    <div class="actions">
+      <div class="field" style="flex:0 0 60px"><label>Referans</label><input id="ref" maxlength="6"></div>
+      <div class="field" style="flex:0 1 170px"><label>Değer (Value)</label><input id="val"></div>
+      <div class="spacer"></div>
+      <button class="btn" id="add" disabled title="Sadece LCSC kütüphanesine ekle">Kütüphaneye ekle</button>
+      <button class="btn primary" id="place" disabled title="Enter">Ekle ve şematiğe yerleştir</button>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+var $ = function (s) { return document.querySelector(s); };
+var S = { items: [], total: 0, page: 1, kw: "", busy: false, tab: "res", lib: [], libCodes: {}, libImg: {},
+          cur: null, details: {}, req: 0, importing: false, cat: store("cat") || "" };
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+function https(u) { return !u ? "" : (u.indexOf("//") === 0 ? "https:" + u : u); }
+function num(n) { return Number(n || 0).toLocaleString("tr-TR"); }
+function money(v) { return v == null ? "–" : "$" + Number(v).toFixed(v < 0.01 ? 4 : v < 1 ? 3 : 2); }
+function send(o) { window.wx.postMessage(JSON.stringify(o)); }
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+
+var toastT;
+function toast(msg, kind) {
+  var t = $("#toast"); t.innerHTML = msg; t.className = "toast on " + (kind || "");
+  clearTimeout(toastT); toastT = setTimeout(function () { t.className = "toast"; }, kind === "err" ? 7000 : 4500);
+}
+
+/* ---------------- arama ---------------- */
+function search(more) {
+  var kw = $("#q").value.trim();
+  if (!kw) return;
+  if (!more) { S.kw = kw; S.page = 1; S.items = []; S.total = 0; setTab("res"); }
+  else S.page += 1;
+  S.busy = true; S.req += 1;
+  if (!more) $("#list").innerHTML = '<div class="empty"><div class="spin"></div>Aranıyor…</div>';
+  else { var m = $("#more"); if (m) { m.disabled = true; m.textContent = "Yükleniyor…"; } }
+  send({ cmd: "search", kw: S.kw, page: S.page, req: S.req });
+}
+
+function filtered() {
+  var st = $("#f-stock").classList.contains("on"), ba = $("#f-basic").classList.contains("on");
+  var arr = S.items.filter(function (i) { return (!st || i.stock > 0) && (!ba || i.basic); });
+  var k = $("#sort").value;
+  if (k === "stock") arr.sort(function (a, b) { return b.stock - a.stock; });
+  else if (k === "price") arr.sort(function (a, b) { return (a.price == null) - (b.price == null) || a.price - b.price; });
+  else if (k === "model") arr.sort(function (a, b) { return a.model.localeCompare(b.model); });
+  return arr;
+}
+
+function renderList() {
+  var L = $("#list");
+  $("#n-res").textContent = S.items.length;
+  $("#n-lib").textContent = S.lib.length;
+  if (S.tab === "lib") return renderLib();
+  if (!S.kw) {
+    L.innerHTML = '<div class="empty"><b>Parça aramak için yukarıya yazın.</b><br>' +
+      'LCSC kodu (C141632), parça adı (AMS1117) veya değer + kılıf (10k 0603).<br><br>' +
+      '↑ ↓ ile gezin · <b>Enter</b> ekler ve şematikte imlece getirir</div>';
+    $("#meta").textContent = "";
+    return;
+  }
+  var arr = filtered();
+  $("#meta").textContent = S.total ? S.items.length + " / " + num(S.total) + " sonuç" : "";
+  if (!arr.length) {
+    L.innerHTML = '<div class="empty">' + (S.items.length ? "Filtrelere uyan sonuç yok. <b>Stokta</b> / <b>Basic</b> filtrelerini kapatmayı deneyin."
+      : "Sonuç bulunamadı.") + "</div>";
+  } else {
+    L.innerHTML = arr.map(function (i) {
+      var img = i.image ? '<img src="' + esc(https(i.image)) + '" onerror="this.remove()">' : "";
+      return '<div class="row' + (S.cur && S.cur.code === i.code ? " on" : "") + '" data-c="' + esc(i.code) + '">' +
+        '<div class="thumb">' + img + '</div>' +
+        '<div class="r-main"><div class="r-title">' + esc(i.model) + '</div>' +
+        '<div class="r-sub">' + esc(i.code) + " · " + esc(i.brand) + (i.package ? " · " + esc(i.package) : "") + '</div>' +
+        '<div class="r-desc">' + esc(i.desc) + '</div></div>' +
+        '<div class="r-side"><div class="r-price">' + money(i.price) + '</div>' +
+        '<div class="r-stock' + (i.stock ? "" : " zero") + '">' + (i.stock ? num(i.stock) + " adet" : "stok yok") + '</div>' +
+        '<div>' + (S.libCodes[i.code] ? '<span class="badge lib">✓ ekli</span> ' : "") +
+        (i.basic ? '<span class="badge basic">Basic</span>' : '<span class="badge ext">Ext</span>') + '</div></div></div>';
+    }).join("");
+  }
+  if (S.items.length < S.total)
+    L.insertAdjacentHTML("beforeend", '<button class="btn more" id="more">Daha fazla yükle (' +
+      num(S.total - S.items.length) + ' kaldı)</button>');
+}
+
+var CATS = [["R", "Direnç"], ["C", "Kondansatör"], ["L", "Bobin"], ["D", "Diyot / LED"], ["Q", "Transistör"],
+            ["U", "Entegre"], ["J", "Konnektör"], ["SW", "Buton / Anahtar"], ["F", "Sigorta"], ["Y", "Kristal"],
+            ["K", "Röle"], ["BZ", "Buzzer"]];
+function catOf(p) {
+  var r = (p.ref || "U").toUpperCase();
+  return CATS.some(function (c) { return c[0] === r; }) ? r : "?";
+}
+function libFiltered() {
+  var q = $("#lq").value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  return S.lib.slice().reverse().filter(function (p) {
+    if (S.cat && catOf(p) !== S.cat) return false;
+    var hay = [p.symbol, p.code, p.value, p.desc, p.brand].join(" ").toLowerCase();
+    return q.every(function (w) { return hay.indexOf(w) >= 0; });
+  });
+}
+function renderCats() {
+  var n = {}; S.lib.forEach(function (p) { var c = catOf(p); n[c] = (n[c] || 0) + 1; });
+  var list = [["", "Tümü", S.lib.length]].concat(CATS.filter(function (c) { return n[c[0]]; })
+    .map(function (c) { return [c[0], c[1], n[c[0]]]; }));
+  if (n["?"]) list.push(["?", "Diğer", n["?"]]);
+  if (!list.some(function (c) { return c[0] === S.cat; })) S.cat = "";
+  $("#cats").innerHTML = list.map(function (c) {
+    return '<button class="cat' + (c[0] === S.cat ? " on" : "") + '" data-cat="' + esc(c[0]) + '">' +
+      esc(c[1]) + "<i>" + c[2] + "</i></button>"; }).join("");
+}
+function renderLib() {
+  var L = $("#list");
+  renderCats();
+  if (!S.lib.length) { $("#meta").textContent = ""; L.innerHTML = '<div class="empty">Kütüphane henüz boş.</div>'; return; }
+  var arr = libFiltered();
+  $("#meta").textContent = arr.length + " / " + S.lib.length + " parça";
+  if (!arr.length) { L.innerHTML = '<div class="empty">Bu filtreye uyan parça yok.</div>'; return; }
+  L.innerHTML = arr.map(function (p) {
+    return '<div class="row' + (S.cur && S.cur.code === p.code ? " on" : "") + '" data-c="' + esc(p.code) + '">' +
+      (S.libImg[p.code] ? '<div class="thumb"><img src="' + esc(https(S.libImg[p.code])) + '" onerror="this.remove()"></div>'
+        : '<div class="thumb ref">' + esc(p.ref || "U") + '</div>') +
+      '<div class="r-main"><div class="r-title">' + esc(p.value || p.symbol) + '</div>' +
+      '<div class="r-sub">' + esc(p.code) + (p.brand ? " · " + esc(p.brand) : "") + " · LCSC:" + esc(p.symbol) + '</div>' +
+      '<div class="r-desc">' + esc(p.desc) + '</div></div>' +
+      '<div class="r-side"><span class="badge lib">' + esc(p.ref || "U") + '</span></div></div>';
+  }).join("");
+}
+
+function setTab(t) {
+  S.tab = t;
+  document.querySelectorAll(".tab").forEach(function (b) { b.classList.toggle("on", b.dataset.t === t); });
+  $("#libbar").hidden = t !== "lib";
+  if (t === "lib") send({ cmd: "library" });
+  renderList();
+}
+
+/* ---------------- secim / detay ---------------- */
+function itemFor(code) {
+  for (var i = 0; i < S.items.length; i++) if (S.items[i].code === code) return S.items[i];
+  var p = S.lib.filter(function (x) { return x.code === code; })[0] || {};
+  return { code: code, model: p.symbol || code, brand: p.brand || "", package: "", stock: 0, price: null,
+           basic: false, desc: p.desc || "", category: "", image: S.libImg[code] || null, datasheet: null, url: null, prices: [] };
+}
+
+function select(code, scroll) {
+  if (!code) return;
+  S.cur = itemFor(code);
+  document.querySelectorAll(".row").forEach(function (r) { r.classList.toggle("on", r.dataset.c === code); });
+  if (scroll) { var r = document.querySelector('.row[data-c="' + code + '"]'); if (r) r.scrollIntoView({ block: "nearest" }); }
+  $("#add").disabled = $("#place").disabled = S.importing;
+  if (S.details[code]) return showDetail(code);
+  $("#detail").innerHTML = '<div class="empty"><div class="spin"></div>' + esc(code) + " yükleniyor…</div>";
+  send({ cmd: "detail", code: code });
+}
+
+function showDetail(code) {
+  if (!S.cur || S.cur.code !== code) return;
+  var it = S.cur, D = S.details[code] || {}, d = D.d || {};
+  $("#ref").value = D.ref || "U";
+  $("#val").value = D.value || d.productModel || it.model;
+
+  var model = d.productModel || it.model, brand = d.brandNameEn || it.brand, pkg = d.encapStandard || it.package;
+  var stock = d.stockNumber != null ? d.stockNumber : it.stock, desc = d.productIntroEn || it.desc;
+  var cat = d.catalogName || it.category;
+
+  var badges = ['<span class="badge">' + esc(code) + "</span>"];
+  if (S.items.indexOf(it) >= 0) badges.push(it.basic ? '<span class="badge basic">Basic</span>' : '<span class="badge ext">Extended</span>');
+  badges.push('<span class="badge ' + (stock ? "lib" : "none") + '">' + (stock ? "Stok: " + num(stock) : "Stok yok") + "</span>");
+  if (pkg) badges.push('<span class="badge">' + esc(pkg) + "</span>");
+  if (S.libCodes[code]) badges.push('<span class="badge basic">✓ Kütüphanede: LCSC:' + esc(S.libCodes[code]) + "</span>");
+
+  var imgs = (d.productImages || []).map(https);
+  if (!imgs.length && it.image) imgs = [https(it.image)];
+  var svg = d._svg || {}, tabs = [], panes = [];
+  if (imgs.length) {
+    tabs.push(["foto", "Fotoğraf"]);
+    panes.push('<div class="view"><img id="mainimg" src="' + esc(imgs[0]) + '"></div>' + (imgs.length > 1 ?
+      '<div class="thumbs">' + imgs.map(function (u, n) { return '<img src="' + esc(u) + '" class="' + (n ? "" : "on") + '">'; }).join("") + "</div>" : ""));
+  }
+  if (svg.schSvg) { tabs.push(["sch", "Sembol"]); panes.push('<div class="view"><img class="svg" src="' + svg.schSvg + '"></div>'); }
+  if (svg.pcbSvg) { tabs.push(["pcb", "Footprint"]); panes.push('<div class="view dark"><img class="svg" src="' + svg.pcbSvg + '"></div>'); }
+
+  var params = [["Üretici", brand], ["Kategori", cat], ["Kılıf", pkg]].concat(
+    (d.paramVOList || []).filter(function (p) { return p.paramValueEn && p.paramValueEn !== "-"; })
+      .map(function (p) { return [p.paramNameEn, p.paramValueEn]; })).filter(function (r) { return r[1]; });
+  var prices = (d.productPriceList || []).map(function (p) { return [p.ladder, p.usdPrice]; });
+  if (!prices.length) prices = it.prices || [];
+
+  var ds = d.pdfUrl || it.datasheet, url = it.url || "https://www.lcsc.com/product-detail/" + code + ".html";
+  var h = '<div class="card"><h1>' + esc(model) + '</h1><div class="sub">' + esc(brand) + "</div>" +
+    '<div class="sub">' + esc(desc) + '</div><div class="badges">' + badges.join("") + "</div>" +
+    '<div class="links">' + (ds ? '<button class="btn primary" data-open="' + esc(ds) + '">📄 Datasheet</button>' : "") +
+    '<button class="btn" data-open="' + esc(url) + '">LCSC sayfası</button>' +
+    '<button class="btn" data-open="https://jlcpcb.com/partdetail/' + esc(code) + '">JLCPCB</button></div></div>';
+  if (tabs.length) {
+    h += '<div class="card"><div class="gtabs">' + tabs.map(function (t, n) {
+      return '<button class="gtab' + (n ? "" : " on") + '" data-g="' + n + '">' + t[1] + "</button>"; }).join("") + "</div>" +
+      panes.map(function (p, n) { return '<div class="gpane" data-g="' + n + '"' + (n ? ' hidden' : "") + ">" + p + "</div>"; }).join("") + "</div>";
+  }
+  if (D.cad === false) h += cadCard(code, model, D);
+  h += '<div class="grid2">';
+  if (params.length) h += '<div class="card"><h3>Teknik özellikler</h3><table>' + params.map(function (r) {
+    return "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td></tr>"; }).join("") + "</table></div>";
+  if (prices.length) h += '<div class="card"><h3>Fiyat (USD)</h3><table class="price">' + prices.map(function (r) {
+    return "<tr><td>" + num(r[0]) + "+ adet</td><td>" + money(r[1]) + "</td></tr>"; }).join("") + "</table></div>";
+  h += "</div>";
+  if (!D.d) h += '<div class="card sub">LCSC detay bilgisi alınamadı; yalnızca arama sonucundaki bilgiler gösteriliyor.</div>';
+  var box = $("#detail"); box.innerHTML = h; box.scrollTop = 0;
+  $("#add").disabled = $("#place").disabled = S.importing || D.cad === false;
+}
+
+function cadCard(code, model, D) {
+  var h = '<div class="card warn"><h3>⚠ Bu parçanın KiCad çizimi yok</h3><div class="sub">' + esc(code) +
+    " için EasyEDA'da sembol ve footprint bulunmuyor, bu yüzden otomatik eklenemiyor. " +
+    "Aynı parçanın çizimi olan başka bir LCSC kodunu seçebilirsiniz.</div>";
+  if (!D.alts) {
+    h += '<div class="links"><button class="btn primary" id="find-alts" data-model="' + esc(model) +
+         '">Çizimi olan alternatifleri bul</button></div>';
+  } else if (D.alts === "busy") {
+    h += '<div class="alts"><div class="sub"><span class="spin"></span> Aranıyor…</div></div>';
+  } else if (D.alts.error) {
+    h += '<div class="sub">' + esc(D.alts.error) + "</div>";
+  } else if (!D.alts.length) {
+    h += '<div class="sub"><b>Çizimi olan alternatif bulunamadı.</b> KiCad’in kendi kütüphanesinde aynı parça ' +
+         "varsa (ör. BC547 → Transistor_BJT:BC547) onu kullanabilirsiniz.</div>";
+  } else {
+    h += '<div class="alts">' + D.alts.map(function (a) {
+      return '<button class="alt" data-alt="' + esc(a.code) + '"><b>' + esc(a.code) + "</b><span>" +
+        esc([a.model, a.brand, a.package].filter(Boolean).join(" · ")) + "</span>" +
+        (a.basic ? '<i class="badge basic">Basic</i>' : "") +
+        '<i class="badge ' + (a.stock ? "lib" : "none") + '">' + (a.stock ? "Stok: " + num(a.stock) : "Stok yok") + "</i></button>";
+    }).join("") + "</div>";
+  }
+  return h + "</div>";
+}
+
+/* ---------------- ice aktarma ---------------- */
+function doImport(place) {
+  if (!S.cur || S.importing) return;
+  if (place && S.tab === "lib" && S.libCodes[S.cur.code]) {   // kutuphanede: indirmeden yerlestir
+    S.importing = true; $("#add").disabled = $("#place").disabled = true;
+    $("#place").textContent = "Yerleştiriliyor…";
+    return send({ cmd: "place", symbol: S.libCodes[S.cur.code] });
+  }
+  var D = S.details[S.cur.code] || {}, d = D.d || {};
+  S.importing = true; $("#add").disabled = $("#place").disabled = true;
+  $("#place").textContent = "Ekleniyor…";
+  send({ cmd: "import", code: S.cur.code, place: !!place,
+         ref: $("#ref").value.replace(/[^A-Za-z]/g, "") || "U", value: $("#val").value.trim(),
+         desc: d.productIntroEn || S.cur.desc || "" });
+}
+
+/* ---------------- Python -> JS ---------------- */
+var App = {
+  onSearch: function (r) {
+    if (r.req !== S.req) return;
+    S.busy = false;
+    if (r.error) {
+      if (r.page > 1) { S.page -= 1; renderList(); toast(esc(r.error), "err"); return; }
+      $("#list").innerHTML = '<div class="empty"><b>Arama yapılamadı</b><br>' + esc(r.error) +
+        '<br><br><button class="btn" id="retry">Tekrar dene</button></div>';
+      return;
+    }
+    S.items = S.items.concat(r.items.filter(function (i) { return !S.items.some(function (x) { return x.code === i.code; }); }));
+    S.total = r.total;
+    renderList();
+    if (r.page === 1) { var f = filtered()[0]; if (f) select(f.code); $("#list").scrollTop = 0; }
+  },
+  onDetail: function (r) { S.details[r.code] = r; showDetail(r.code); },
+  onLibrary: function (lib) {
+    S.lib = lib; S.libCodes = {};
+    lib.forEach(function (p) { if (p.code) S.libCodes[p.code] = p.symbol; });
+    renderList();
+    var need = lib.map(function (p) { return p.code; }).filter(function (c) { return c && !(c in S.libImg); });
+    if (need.length) send({ cmd: "libimages", codes: need });
+  },
+  onLibImages: function (m) {
+    if (m.error) return;
+    Object.keys(m).forEach(function (c) { S.libImg[c] = m[c]; });
+    if (S.tab === "lib") renderList();
+  },
+  onImport: function (r) {
+    S.importing = false; $("#add").disabled = $("#place").disabled = !S.cur;
+    $("#place").textContent = "Ekle ve şematiğe yerleştir";
+    if (r.nocad) {
+      var D = S.details[r.code] = S.details[r.code] || { code: r.code };
+      D.cad = false; toast("<b>Eklenemedi</b><br>" + esc(r.error), "err");
+      if (S.cur && S.cur.code === r.code) showDetail(r.code);
+      return;
+    }
+    if (r.error) { toast("<b>Eklenemedi</b><br>" + esc(r.error).slice(0, 400), "err"); return; }
+    toast("<b>✓ LCSC:" + esc(r.symbol) + "</b> " + (r.footprint === undefined ? "hazır" : "kütüphaneye eklendi") +
+          (r.pasted ? "<br>Şematikte imlecinize yapıştı, tıklayarak bırakın."
+           : r.placed ? "<br>Şematik açık değil: açınca <b>Ctrl+V</b> ile yerleştirin."
+           : "<br>Şematikte <b>A</b> ile bulabilirsiniz."), "ok");
+    send({ cmd: "library" });
+    if (S.cur) showDetail(S.cur.code);
+  },
+  onAlts: function (r) {
+    var D = S.details[r.code]; if (!D) return;
+    D.alts = r.error ? { error: r.error } : r.items;
+    if (S.cur && S.cur.code === r.code) showDetail(r.code);
+  },
+  onSetup: function (r) {
+    if (r.added) toast("<b>LCSC kütüphanesi KiCad'e tanıtıldı.</b><br>Footprint'lerin görünmesi için KiCad'i bir kez kapatıp açın.", "ok");
+    else if (r.error) toast("<b>Kütüphane tablosu güncellenemedi</b><br>" + esc(r.error), "err");
+  },
+  focus: function () { $("#q").focus(); $("#q").select(); },
+  info: function (i) {
+    $("#logo").title = ["LCSC Parça Ekle v" + i.version, "Kütüphane: " + i.lib_dir, "Log: " + i.log].join("\n");
+  }
+};
+
+/* ---------------- olaylar ---------------- */
+$("#go").onclick = function () { search(false); };
+$("#q").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") { e.preventDefault(); search(false); }
+  else if (e.key === "ArrowDown") { e.preventDefault(); $("#list").focus(); move(1); }
+});
+["#f-stock", "#f-basic"].forEach(function (id) {
+  $(id).onclick = function () { this.classList.toggle("on"); store(id, this.classList.contains("on") ? "1" : "0"); renderList(); };
+});
+$("#sort").onchange = function () { store("sort", this.value); renderList(); };
+document.querySelectorAll(".tab").forEach(function (b) { b.onclick = function () { setTab(b.dataset.t); }; });
+
+$("#list").addEventListener("click", function (e) {
+  if (e.target.id === "more") return search(true);
+  if (e.target.id === "retry") return search(false);
+  var r = e.target.closest(".row"); if (r) select(r.dataset.c);
+});
+$("#list").addEventListener("dblclick", function (e) { if (e.target.closest(".row")) doImport(true); });
+
+$("#lq").addEventListener("input", function () { renderList(); });
+$("#lq").addEventListener("keydown", function (e) {
+  if (e.key === "ArrowDown") { e.preventDefault(); $("#list").focus(); move(1); }
+  else if (e.key === "Enter") { e.preventDefault(); var r = document.querySelector(".row"); if (r) { select(r.dataset.c); doImport(true); } }
+  else if (e.key === "Escape") { this.value = ""; renderList(); }
+});
+$("#cats").addEventListener("click", function (e) {
+  var c = e.target.closest(".cat"); if (!c) return;
+  S.cat = c.dataset.cat; store("cat", S.cat); renderList();
+  var r = document.querySelector(".row"); if (r) select(r.dataset.c);
+});
+
+function move(d) {
+  var rows = Array.prototype.slice.call(document.querySelectorAll(".row"));
+  if (!rows.length) return;
+  var i = rows.findIndex(function (r) { return r.classList.contains("on"); });
+  i = Math.max(0, Math.min(rows.length - 1, i < 0 ? 0 : i + d));
+  select(rows[i].dataset.c, true);
+}
+$("#list").addEventListener("keydown", function (e) {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); move(e.key === "ArrowDown" ? 1 : -1); }
+  else if (e.key === "PageDown" || e.key === "PageUp") { e.preventDefault(); move(e.key === "PageDown" ? 8 : -8); }
+  else if (e.key === "Enter") { e.preventDefault(); doImport(true); }
+});
+["#ref", "#val"].forEach(function (id) {
+  $(id).addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); doImport(true); } });
+});
+$("#add").onclick = function () { doImport(false); };
+$("#place").onclick = function () { doImport(true); };
+
+$("#detail").addEventListener("click", function (e) {
+  var o = e.target.closest("[data-open]"); if (o) return send({ cmd: "open", url: o.dataset.open });
+  var fa = e.target.closest("#find-alts");
+  if (fa && S.cur) {
+    S.details[S.cur.code].alts = "busy"; showDetail(S.cur.code);
+    return send({ cmd: "alts", code: S.cur.code, model: fa.dataset.model });
+  }
+  var al = e.target.closest("[data-alt]");
+  if (al) { $("#q").value = al.dataset.alt; return search(false); }
+  var g = e.target.closest(".gtab");
+  if (g) {
+    document.querySelectorAll(".gtab").forEach(function (t) { t.classList.toggle("on", t === g); });
+    document.querySelectorAll(".gpane").forEach(function (p) { p.hidden = p.dataset.g !== g.dataset.g; });
+    return;
+  }
+  if (e.target.closest(".thumbs img")) {
+    $("#mainimg").src = e.target.src;
+    document.querySelectorAll(".thumbs img").forEach(function (t) { t.classList.toggle("on", t === e.target); });
+  }
+});
+document.addEventListener("keydown", function (e) {
+  if ((e.ctrlKey && e.key.toLowerCase() === "f") || (e.key === "/" && document.activeElement.tagName !== "INPUT")) {
+    e.preventDefault(); App.focus();
+  }
+});
+
+/* ayirici: surukleyerek sol paneli boyutlandir */
+(function () {
+  var dv = $("#div"), root = document.documentElement;
+  var saved = parseInt(store("left"), 10);
+  if (saved > 0) root.style.setProperty("--left", saved + "px");
+  dv.addEventListener("pointerdown", function (e) {
+    dv.setPointerCapture(e.pointerId); dv.classList.add("drag");
+    var move = function (ev) {
+      var w = Math.max(300, Math.min(window.innerWidth - 566, ev.clientX - 3));
+      root.style.setProperty("--left", w + "px");
+    };
+    var up = function () {
+      dv.classList.remove("drag"); dv.removeEventListener("pointermove", move); dv.removeEventListener("pointerup", up);
+      store("left", parseInt(getComputedStyle(root).getPropertyValue("--left"), 10));
+    };
+    dv.addEventListener("pointermove", move); dv.addEventListener("pointerup", up);
+  });
+  dv.addEventListener("dblclick", function () { root.style.setProperty("--left", "560px"); store("left", 560); });
+})();
+
+/* kayitli tercihler */
+(function () {
+  if (store("#f-stock") === "0") $("#f-stock").classList.remove("on");
+  if (store("#f-basic") === "1") $("#f-basic").classList.add("on");
+  var s = store("sort"); if (s) $("#sort").value = s;
+})();
+
+renderList();
+$("#detail").innerHTML = '<div class="empty">Bir parça seçince fotoğrafı, sembolü, footprint\'i ve teknik özellikleri burada görünür.</div>';
+App.focus();
+send({ cmd: "ready" });
+</script>
+</body>
+</html>

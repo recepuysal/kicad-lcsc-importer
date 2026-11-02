@@ -1,0 +1,3 @@
+# KiCad bu paketleri eklentinin kendi Python ortamina kurar.
+# wx ve requests KiCad'in Python'unda zaten var.
+easyeda2kicad==1.0.1
